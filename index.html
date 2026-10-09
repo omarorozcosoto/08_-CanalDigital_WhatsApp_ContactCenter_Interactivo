@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador WhatsApp | Contact Center</title>
+<style>
+:root{--green:#075e54;--green2:#128c7e;--lime:#25d366;--bg:#e9edef;--panel:#fff;--ink:#202c33;--muted:#667781;--line:#d9e1e5;--bubble:#d9fdd3;--bot:#fff;--blue:#53bdeb}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:#dfe5e7;color:var(--ink)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.app{max-width:1400px;margin:0 auto;min-height:100vh;background:#f6f8f9;display:grid;grid-template-columns:290px minmax(320px,1fr) 300px;box-shadow:0 8px 35px #2632381a}
+.sidebar{background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:100vh}
+.brand{height:72px;background:var(--green);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px}
+.brand-mark{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--green);display:grid;place-items:center;font-size:21px;font-weight:800}
+.brand strong{font-size:15px}.brand small{display:block;opacity:.8;margin-top:3px}
+.side-title{padding:18px 16px 10px;font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px}
+.conversation{padding:13px 16px;display:flex;gap:11px;align-items:center;border-bottom:1px solid #f0f2f3;cursor:pointer}
+.conversation.active{background:#f0f2f3}.avatar{width:43px;height:43px;flex:none;border-radius:50%;background:#cce8df;display:grid;place-items:center;font-weight:800;color:#075e54}
+.conversation .name{font-weight:700;font-size:14px}.conversation .preview{font-size:12px;color:var(--muted);margin-top:5px}.time{font-size:10px;color:var(--muted);margin-left:auto;align-self:flex-start}
+.status-chip{font-size:10px;border-radius:20px;padding:4px 7px;background:#e5f7ed;color:#137547;display:inline-block;margin-top:5px}
+.side-foot{margin-top:auto;padding:15px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);line-height:1.5}
+.chat{display:flex;flex-direction:column;min-width:0;background:#efeae2}
+.chat-header{height:72px;background:#f7f9fa;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 20px;gap:12px}
+.chat-header .person{font-weight:750}.chat-header .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.small-btn{border:1px solid var(--line);background:white;border-radius:9px;padding:8px 10px;color:#34454e;font-size:12px;font-weight:700}
+.small-btn:hover{background:#f0f5f4}
+.modebar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:#fff;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap}
+.mode-label{font-size:12px;color:var(--muted)}.toggle{display:flex;background:#eef2f2;border-radius:9px;padding:3px;gap:3px}
+.toggle button{border:0;border-radius:7px;padding:7px 12px;font-size:12px;color:#52636b;background:transparent;font-weight:700}
+.toggle button.selected{background:var(--green2);color:white;box-shadow:0 2px 5px #0001}
+.chat-area{flex:1;min-height:400px;overflow:auto;padding:22px clamp(12px,4vw,48px);background-color:#efeae2;background-image:radial-gradient(#d6d0c6 0.65px,transparent .65px);background-size:15px 15px}
+.day-divider{text-align:center;margin:4px auto 20px;background:#fff9c4;color:#6b6b55;padding:7px 12px;border-radius:7px;font-size:11px;width:max-content;box-shadow:0 1px 2px #0001}
+.message{max-width:min(78%,520px);padding:9px 11px 7px;border-radius:9px;margin:9px 0;box-shadow:0 1px 1px #0001;position:relative;line-height:1.42;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere;animation:pop .16s ease-out}
+.message.in{background:var(--bot);border-top-left-radius:2px}.message.out{background:var(--bubble);border-top-right-radius:2px;margin-left:auto}
+.message .sender{font-size:11px;font-weight:800;color:var(--green);margin-bottom:4px}.message .meta{font-size:10px;color:#718078;text-align:right;margin-top:4px}
+.message .tag{display:inline-block;background:#e5f5ec;color:#11734d;font-size:9px;font-weight:800;border-radius:4px;padding:2px 5px;margin-left:5px}
+.quick-replies{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px;max-width:90%}
+.quick-replies button{border:1px solid #b8d8cf;color:#087568;background:#fff;border-radius:18px;padding:8px 12px;font-size:12px;font-weight:700;box-shadow:0 1px 2px #0001}
+.quick-replies button:hover{background:#e8f6f0}
+.typing{display:inline-flex;gap:4px;align-items:center;background:white;border-radius:10px;padding:10px 13px;margin:6px 0;color:var(--muted);font-size:11px}
+.dot{width:5px;height:5px;background:#84949b;border-radius:50%;animation:bounce .8s infinite alternate}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+.composer{background:#f7f9fa;padding:12px 16px;display:flex;gap:9px;align-items:center;border-top:1px solid var(--line)}
+.composer input{min-width:0;flex:1;border:1px solid #d6dfe2;background:#fff;border-radius:22px;padding:13px 17px;outline:none}
+.composer input:focus{border-color:#78b9a7;box-shadow:0 0 0 3px #128c7e12}
+.send{width:43px;height:43px;border:0;border-radius:50%;background:var(--green2);color:white;font-size:18px;display:grid;place-items:center}
+.rightbar{background:#fff;border-left:1px solid var(--line);padding:0 16px 20px;overflow:auto}
+.right-head{margin:0 -16px;padding:22px 17px 17px;border-bottom:1px solid var(--line)}.right-head h3{margin:0;font-size:14px}.right-head p{font-size:12px;color:var(--muted);margin:7px 0 0;line-height:1.4}
+.card{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:14px}.card h4{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#54666e}
+.field{margin-bottom:10px}.field label{display:block;font-size:11px;font-weight:700;color:#5d6b72;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;border:1px solid #d9e1e5;border-radius:7px;padding:9px;font-size:12px;background:#fff;outline:none}.field textarea{resize:vertical;min-height:55px}
+.primary{width:100%;background:var(--green2);border:0;color:#fff;border-radius:8px;padding:10px;font-size:12px;font-weight:800}.secondary{width:100%;background:#f1f5f4;border:1px solid #dce5e2;color:#31534b;border-radius:8px;padding:9px;font-size:12px;font-weight:700;margin-top:7px}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{padding:10px;border-radius:9px;background:#f3f7f6}.metric b{font-size:19px;color:var(--green)}.metric span{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+.product{display:flex;gap:10px}.product-img{width:70px;height:76px;border-radius:9px;background:linear-gradient(145deg,#dceee8,#b8d9cf);display:grid;place-items:center;font-size:28px;flex:none}.product h5{margin:2px 0 5px;font-size:13px}.product p{font-size:11px;color:var(--muted);line-height:1.4;margin:0 0 5px}.price{font-weight:800;color:var(--green2);font-size:14px}
+.note{font-size:10px;color:var(--muted);line-height:1.5}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#203b36;color:white;padding:11px 17px;border-radius:10px;font-size:12px;box-shadow:0 6px 25px #0002;display:none;z-index:5}
+@keyframes pop{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}@keyframes bounce{to{transform:translateY(-4px);opacity:.5}}
+@media(max-width:1050px){.app{grid-template-columns:245px minmax(300px,1fr)}.rightbar{grid-column:1/-1;min-height:auto;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding-bottom:18px}.right-head{grid-column:1/-1}.card{margin-top:12px}}
+@media(max-width:700px){.app{display:flex;flex-direction:column}.sidebar{min-height:auto}.brand{height:60px}.side-title{padding:12px 15px 6px}.conversation{padding:10px 15px}.conversation:not(.active){display:none}.side-foot{display:none}.chat{min-height:720px}.chat-area{min-height:420px;padding:15px 12px}.message{max-width:90%}.chat-header{padding:0 12px}.header-actions .small-btn:first-child{display:none}.rightbar{display:block}.right-head{padding-top:17px}.card{margin-top:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">✆</div><div><strong>Contact Center Digital</strong><small>Canal WhatsApp · Demo</small></div></div>
+    <div class="side-title">BANDEJA DE ENTRADA</div>
+    <div class="conversation active" id="conversationItem">
+      <div class="avatar">LM</div><div style="min-width:0;flex:1"><div class="name">Laura Martínez</div><div class="preview" id="lastPreview">Hola, me interesa conocer una promoción.</div><span class="status-chip" id="conversationStatus">En conversación</span></div><div class="time">Ahora</div>
+    </div>
+    <div class="side-title">CANALES</div>
+    <div class="conversation" style="cursor:default"><div class="avatar" style="background:#dce9f8;color:#35608a">WA</div><div><div class="name">WhatsApp Business</div><div class="preview">Canal digital conectado (simulado)</div></div></div>
+    <div class="side-foot">Entorno de demostración. No se envían mensajes a WhatsApp real ni se conecta con sistemas externos.</div>
+  </aside>
+
+  <main class="chat">
+    <header class="chat-header">
+      <div class="avatar">LM</div><div><div class="person">Laura Martínez <span style="font-size:11px;color:#75858b;font-weight:500">· Prospecto</span></div><div class="sub" id="chatPresence">Atención automatizada disponible</div></div>
+      <div class="header-actions"><button class="small-btn" id="resetBtn">↻ Reiniciar</button><button class="small-btn" id="handoffTop">⇄ Transferir</button></div>
+    </header>
+    <div class="modebar">
+      <div class="mode-label">Modo de atención: <strong id="modeText">Bot con IA (simulado)</strong></div>
+      <div class="toggle"><button id="botMode" class="selected">🤖 Bot</button><button id="agentMode">👤 Agente</button></div>
+    </div>
+    <section class="chat-area" id="chatArea" aria-live="polite">
+      <div class="day-divider">HOY</div>
+    </section>
+    <div class="composer">
+      <button class="small-btn" id="quickBtn" title="Respuestas sugeridas">☷</button>
+      <input id="messageInput" placeholder="Escribe un mensaje..." autocomplete="off" aria-label="Escribe un mensaje"/>
+      <button class="send" id="sendBtn" aria-label="Enviar mensaje">➤</button>
+    </div>
+  </main>
+
+  <aside class="rightbar">
+    <div class="right-head"><h3>Panel de atención</h3><p>Datos del contacto, contexto comercial y seguimiento de la conversación.</p></div>
+    <div class="card">
+      <h4>Ficha del contacto</h4>
+      <div class="field"><label>Nombre completo</label><input id="contactName" value="Laura Martínez"/></div>
+      <div class="field"><label>Teléfono</label><input id="contactPhone" value="+52 55 1234 5678"/></div>
+      <div class="field"><label>Correo electrónico</label><input id="contactEmail" placeholder="laura@correo.com"/></div>
+      <div class="field"><label>Motivo de contacto</label><select id="contactReason"><option>Información de producto</option><option>Promoción / ventas</option><option>Seguimiento de compra</option><option>Soporte</option><option>Hablar con un agente</option></select></div>
+      <div class="field"><label>Notas del agente</label><textarea id="contactNotes" placeholder="Necesidades, preferencias, acuerdos..."></textarea></div>
+      <button class="primary" id="saveContact">Guardar ficha (demo)</button>
+    </div>
+    <div class="card">
+      <h4>Producto sugerido</h4>
+      <div class="product"><div class="product-img">🎧</div><div><h5>Plan Conecta Plus</h5><p>Plan ilustrativo con conectividad, atención prioritaria y beneficios promocionales.</p><div class="price">$499 MXN/mes*</div></div></div>
+      <button class="secondary" id="sendOffer">Compartir oferta en el chat</button>
+      <p class="note" style="margin:9px 0 0">*Producto y precio ficticios para demostración. Validar catálogo y precios reales antes de producción.</p>
+    </div>
+    <div class="card">
+      <h4>Indicadores de la sesión</h4>
+      <div class="metric-grid"><div class="metric"><b id="msgCount">0</b><span>Mensajes en chat</span></div><div class="metric"><b id="sessionTime">00:00</b><span>Duración de sesión</span></div><div class="metric"><b id="handoffCount">0</b><span>Transferencias</span></div><div class="metric"><b id="savedFlag">No</b><span>Ficha guardada</span></div></div>
+      <button class="secondary" id="endSession">Finalizar conversación</button>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const chatArea=document.getElementById('chatArea');
+const input=document.getElementById('messageInput');
+const botMode=document.getElementById('botMode'), agentMode=document.getElementById('agentMode');
+let mode='bot', handoffs=0, saved=false, ended=false, startTime=Date.now(), messages=0;
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',2400)}
+function timeNow(){return new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}
+function addMessage(text,who='in',sender=''){
+ const div=document.createElement('div');div.className='message '+who;
+ if(sender){const s=document.createElement('div');s.className='sender';s.textContent=sender;div.appendChild(s)}
+ const body=document.createElement('div');body.textContent=text;div.appendChild(body);
+ const meta=document.createElement('div');meta.className='meta';meta.textContent=timeNow()+(who==='out'?'  ✓✓':'');div.appendChild(meta);
+ chatArea.appendChild(div);chatArea.scrollTop=chatArea.scrollHeight;messages++;document.getElementById('msgCount').textContent=messages;
+ if(who==='out')document.getElementById('lastPreview').textContent=text.slice(0,48);
+ return div;
+}
+function addQuickReplies(items){
+ const box=document.createElement('div');box.className='quick-replies';
+ items.forEach(item=>{const b=document.createElement('button');b.textContent=item;b.onclick=()=>{box.remove();sendUser(item)};box.appendChild(b)});
+ chatArea.appendChild(box);chatArea.scrollTop=chatArea.scrollHeight;
+}
+function botReply(userText){
+ if(mode==='agent'){
+   const reply=agentResponse(userText);setTimeout(()=>{if(!ended)addMessage(reply,'in','Asesor · Daniel')},450);return;
+ }
+ const t=userText.toLowerCase();
+ let reply='Con gusto te ayudo. ¿Me cuentas un poco más sobre lo que necesitas?';
+ let choices=['Ver promoción','Conocer características','Hablar con un agente'];
+ if(/agente|persona|asesor|humano|ejecutivo/.test(t)){transferToAgent();return}
+ if(/promo|oferta|precio|costo|499|descuento/.test(t)){
+  reply='Tenemos una oferta de demostración: el Plan Conecta Plus por $499 MXN al mes. Incluye beneficios de conectividad y atención prioritaria. ¿Qué te gustaría conocer?';choices=['Ver beneficios','Quiero que me contacten','Hablar con un agente'];
+ }else if(/beneficio|caracter|incluye|plan/.test(t)){
+  reply='El Plan Conecta Plus es un ejemplo de catálogo: conectividad, atención prioritaria y beneficios promocionales. Antes de contratar, un asesor puede validar cobertura, condiciones y precio vigente.';choices=['Me interesa','Tengo una pregunta','Hablar con un agente'];
+ }else if(/interesa|contact|comprar|contratar|sí|si/.test(t)){
+  reply='¡Excelente! Para dar seguimiento, puedo registrar tus datos de contacto con tu autorización. ¿Prefieres dejar tus datos o hablar ahora con un asesor?';choices=['Dejar mis datos','Hablar con un agente','Seguir consultando'];
+ }else if(/datos|correo|teléfono|telefono|registr/.test(t)){
+  reply='Puedes capturar o actualizar tus datos en la ficha del contacto del panel derecho. En esta demo los datos no se envían a ningún sistema externo. ¿Deseas que un asesor continúe contigo?';choices=['Sí, transferir','No, gracias'];
+ }else if(/gracias|no gracias|adiós|adios/.test(t)){
+  reply='Gracias por contactarnos. Si necesitas más información, aquí estaremos para ayudarte.';choices=['Ver promoción','Finalizar'];
+ }else if(/finalizar/.test(t)){endConversation();return}
+ addMessage(reply,'in','VoiceBot · Asistente virtual');
+ addQuickReplies(choices);
+}
+function agentResponse(text){
+ const t=text.toLowerCase();
+ if(/precio|promo|oferta/.test(t))return 'Claro, te comparto la oferta ilustrativa de $499 MXN al mes. Confirmaría contigo las condiciones vigentes y tu elegibilidad antes de formalizarla.';
+ if(/interesa|sí|si|contratar/.test(t))return 'Perfecto. Para avanzar, revisaré tus datos de contacto y registraré el seguimiento. ¿Cuál es el mejor horario para contactarte?';
+ if(/gracias|adiós|adios/.test(t))return 'Gracias por tu tiempo, Laura. Dejaré registrada la interacción. ¡Que tengas excelente día!';
+ return 'Gracias por la información. Voy a revisarlo contigo y te explicaré las opciones disponibles. ¿Hay algún detalle adicional que deba considerar?';
+}
+function sendUser(text){
+ if(ended){toast('La conversación terminó. Reinicia para comenzar otra.');return}
+ const value=(text||input.value).trim();if(!value)return;
+ addMessage(value,'out');input.value='';
+ botReply(value);
+}
+function transferToAgent(){
+ if(mode==='agent'){addMessage('Ya estás conversando con un asesor.','in','Sistema');return}
+ mode='agent';handoffs++;document.getElementById('handoffCount').textContent=handoffs;updateMode();
+ addMessage('Te transferiré con un asesor. Le compartiré el contexto de esta conversación para que no tengas que repetir tu solicitud.','in','VoiceBot · Asistente virtual');
+ setTimeout(()=>{if(!ended){addMessage('Hola, soy Daniel, asesor del Contact Center. Ya revisé tu consulta sobre el Plan Conecta Plus. ¿Cómo puedo ayudarte?','in','Asesor · Daniel');addQuickReplies(['Consultar promoción','Dejar mis datos','Finalizar'])}},550);
+}
+function updateMode(){
+ botMode.classList.toggle('selected',mode==='bot');agentMode.classList.toggle('selected',mode==='agent');
+ document.getElementById('modeText').textContent=mode==='bot'?'Bot con IA (simulado)':'Agente humano (simulado)';
+ document.getElementById('chatPresence').textContent=ended?'Conversación finalizada':mode==='bot'?'Atención automatizada disponible':'Agente Daniel · En línea';
+ document.getElementById('conversationStatus').textContent=ended?'Finalizada':mode==='bot'?'Atención con bot':'Agente en línea';
+}
+function endConversation(){ended=true;addMessage('La conversación se ha marcado como finalizada. Gracias por contactarnos.','in','Sistema');updateMode();input.disabled=true;document.getElementById('sendBtn').disabled=true;toast('Conversación finalizada')}
+function reset(){
+ chatArea.innerHTML='<div class="day-divider">HOY</div>';messages=0;handoffs=0;saved=false;ended=false;startTime=Date.now();mode='bot';
+ document.getElementById('msgCount').textContent='0';document.getElementById('handoffCount').textContent='0';document.getElementById('savedFlag').textContent='No';
+ input.disabled=false;document.getElementById('sendBtn').disabled=false;input.value='';
+ addMessage('¡Hola! 👋 Soy el asistente virtual del Contact Center. Puedo ayudarte con información de productos, promociones o conectarte con un asesor. ¿Qué te gustaría hacer?','in','VoiceBot · Asistente virtual');
+ addQuickReplies(['Ver promoción','Conocer características','Hablar con un agente']);updateMode();
+}
+document.getElementById('sendBtn').onclick=()=>sendUser();
+input.addEventListener('keydown',e=>{if(e.key==='Enter')sendUser()});
+botMode.onclick=()=>{mode='bot';updateMode();addMessage('La atención automatizada está activa nuevamente. ¿En qué puedo ayudarte?','in','VoiceBot · Asistente virtual');addQuickReplies(['Ver promoción','Conocer características','Hablar con un agente'])};
+agentMode.onclick=()=>transferToAgent();
+document.getElementById('handoffTop').onclick=transferToAgent;
+document.getElementById('resetBtn').onclick=reset;
+document.getElementById('quickBtn').onclick=()=>addQuickReplies(['Ver promoción','Tengo una duda','Dejar mis datos','Hablar con un agente']);
+document.getElementById('sendOffer').onclick=()=>{const offer='Te comparto la oferta ilustrativa: Plan Conecta Plus por $499 MXN al mes. Incluye conectividad, atención prioritaria y beneficios promocionales. Sujeto a validación de condiciones vigentes.';addMessage(offer,'out','Agente · Oferta compartida');toast('Oferta agregada al chat de demostración')};
+document.getElementById('saveContact').onclick=()=>{saved=true;document.getElementById('savedFlag').textContent='Sí';toast('Ficha guardada en la sesión de demostración')};
+document.getElementById('endSession').onclick=endConversation;
+setInterval(()=>{const sec=Math.floor((Date.now()-startTime)/1000);document.getElementById('sessionTime').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')},1000);
+document.getElementById('contactName').addEventListener('change',e=>{document.querySelector('.chat-header .person').childNodes[0].textContent=e.target.value+' '});
+reset();
+</script>
+</body>
+</html>
